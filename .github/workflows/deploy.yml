@@ -1,0 +1,112 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      reddit_url:
+        description: 'Reddit thread URL to archive (leave blank to just deploy)'
+        required: false
+        type: string
+      reddit_user:
+        description: 'AMA guest username (e.g. carpe02)'
+        required: false
+        type: string
+      avatar_url:
+        description: 'Custom avatar image URL for AMA guest (optional)'
+        required: false
+        type: string
+      ai_provider:
+        description: 'AI provider (auto, gemini, anthropic, openrouter, openai, groq, deepseek, mistral)'
+        required: false
+        default: 'auto'
+        type: string
+      force_refetch:
+        description: 'Force re-fetching if thread is already archived'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Fetch new AMA (if dispatched with inputs)
+        if: "${{ github.event.inputs.reddit_url != '' && github.event.inputs.reddit_user != '' }}"
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
+          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+        run: |
+          pip install playwright
+          playwright install chromium
+          FORCE_FLAG=""
+          if [ "${{ github.event.inputs.force_refetch }}" = "true" ]; then
+            FORCE_FLAG="--force"
+          fi
+          AVATAR_FLAG=""
+          if [ -n "${{ github.event.inputs.avatar_url }}" ]; then
+            AVATAR_FLAG="--avatar-url ${{ github.event.inputs.avatar_url }}"
+          fi
+          python scripts/fetch_ama.py \
+            --url "${{ github.event.inputs.reddit_url }}" \
+            --user "${{ github.event.inputs.reddit_user }}" \
+            --ai-provider "${{ github.event.inputs.ai_provider || 'auto' }}" \
+            $AVATAR_FLAG \
+            $FORCE_FLAG
+
+      - name: Commit and push new AMA data to repository
+        if: "${{ github.event.inputs.reddit_url != '' && github.event.inputs.reddit_user != '' }}"
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add assets/data/
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(data): archive AMA for ${{ github.event.inputs.reddit_user }} [skip ci]"
+            git push
+          fi
+
+      - name: Build static distribution
+        run: python scripts/build.py
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
