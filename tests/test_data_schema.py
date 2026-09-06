@@ -25,6 +25,12 @@ def test_carl_pei_qa_data():
     assert "oneunique" in first_item["question_author"]
     assert "carpe02" in first_item["answer_author"]
 
+    item_52 = next((it for it in data["items"] if it["id"] == 52), None)
+    assert item_52 is not None
+    assert "Get us dynamic island" in item_52["question_text"]
+    assert item_52["question_author"] == "u/_dsuza"
+    assert "Switch to iPhone" in item_52["answer_text"]
+
 def test_carl_pei_js_companion():
     js_path = Path("assets/data/1w78hmo.js")
     assert js_path.exists(), "1w78hmo.js companion missing"

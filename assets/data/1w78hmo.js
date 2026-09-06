@@ -536,12 +536,12 @@ window.__AMA_DATA__ = {
     {
       "id": 52,
       "category": "Personal & Quips",
-      "question_author": "[deleted]",
-      "question_text": "Comment deleted by user",
+      "question_author": "u/_dsuza",
+      "question_text": "Get us dynamic island",
       "answer_author": "Carl · u/carpe02",
       "answer_text": "Switch to iPhone",
       "permalink": "https://www.reddit.com/r/NothingTech/comments/1w78hmo/comment/p7t2fu5/?context=3",
-      "search_text": "comment deleted by user switch to iphone [deleted] personal & quips"
+      "search_text": "get us dynamic island switch to iphone u/_dsuza personal & quips"
     },
     {
       "id": 53,
