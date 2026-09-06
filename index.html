@@ -447,7 +447,23 @@
     .label.carl { margin-top: 20px; color: var(--text); }
     .q { font-size: 17px; line-height: 1.58; color: var(--text); white-space: normal; }
     .a { font-size: 18px; line-height: 1.62; color: var(--text); border-left: 3px solid var(--quote-bar); padding-left: 15px; white-space: normal; }
-    .footer { border-top: 1px solid var(--line); padding: 30px 0 60px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 32px 0 60px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+      text-align: center;
+    }
+    .footer p { margin: 0 0 6px; }
+    .footer p:last-child { margin-bottom: 0; }
+    .footer a {
+      color: var(--text);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      transition: opacity 0.15s;
+    }
+    .footer a:hover { opacity: 0.8; }
     .empty-state {
       padding: 40px;
       text-align: center;
@@ -535,8 +551,11 @@
 
     <main class="grid" id="grid" aria-live="polite"></main>
 
-    <footer class="footer" id="footer">
-      Community archive of Carl Pei’s AMA on r/NothingTech. Deleted or removed answers are preserved as posted.
+    <footer class="footer">
+      <p class="footer-notice" id="footer-notice">Community archive of <a href="https://www.reddit.com/r/NothingTech/comments/1w78hmo/im_carl_pei_ceo_of_nothing_ama/?sort=qa" target="_blank" rel="noopener noreferrer">Carl Pei’s AMA</a> on <a href="https://www.reddit.com/r/NothingTech/" target="_blank" rel="noopener noreferrer">r/NothingTech</a>. Deleted or removed answers are preserved as posted.</p>
+      <p class="footer-credits">
+        Made by <a href="https://github.com/spike0en" target="_blank" rel="noopener noreferrer">Spike (spike0en)</a> with inspiration from <a href="https://x.com/kustom_ai/status/2096201047685341573" target="_blank" rel="noopener noreferrer">Daniel (kustomq)</a>.
+      </p>
     </footer>
   </div>
 
@@ -559,7 +578,7 @@
       const metaDateEl = document.getElementById('meta-date');
       const metaCountEl = document.getElementById('meta-count');
       const amaLink = document.getElementById('ama-link');
-      const footerEl = document.getElementById('footer');
+      const footerNoticeEl = document.getElementById('footer-notice');
 
       function escapeHtml(str) {
         if (!str) return '';
@@ -838,7 +857,10 @@
         metaCountEl.textContent = `${totalAnswers} answer${totalAnswers === 1 ? '' : 's'}`;
         amaLink.href = targetUrl;
 
-        footerEl.innerHTML = `Community archive of ${escapeHtml(guestName)}’s AMA on ${escapeHtml(subreddit)}. Deleted or removed answers are preserved as posted.`;
+        if (footerNoticeEl) {
+          const subUrl = subreddit.startsWith('r/') ? `https://www.reddit.com/${subreddit}` : `https://www.reddit.com/r/${subreddit}`;
+          footerNoticeEl.innerHTML = `Community archive of <a href="${escapeHtml(targetUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(guestName)}’s AMA</a> on <a href="${escapeHtml(subUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(subreddit)}</a>. Deleted or removed answers are preserved as posted.`;
+        }
 
         activeCategory = 'All';
         renderCategories(data.categories || ['All']);
